@@ -12,67 +12,131 @@
 
 #include "fdf.h"
 
-void ft_putchar(char c)
+void bresenham(int x0, int y0, int z0, int x1, int y1, int z1, t_utl utl)
 {
-	write(1, &c, 1);
-}
+	int xstep;
+	int ystep;
+	int zstep;
+	int p1;
+	int p2;
+	int dx;
+	int dy;
+	int dz;
 
-int deal_key(int key, void *param)
-{
-	(void)key;
-	(void)param;
-	ft_putchar('X');
-	return (0);
-}
+	// dx = abs(x1 - x0);
+	// dy = abs(y1 - y0);
+	// dz = abs(z1 - z0);
 
-int main()
-{
-	void *mlx_ptr;
-	void *win_ptr;
-	int x = 0, y = 0;
-	int x1 = 50, y1 = 30;
-	int x2 = 100;
-	int y2 = 100;
-	int dx, dy;
-	int p;
-	int step = 1;
+	dx = x1 - x0;
+	dy = y1 - y0;
+	dz = z1 - z0;
 
-	mlx_ptr = mlx_init();
-	win_ptr = mlx_new_window(mlx_ptr, 500, 500, "mlx 42");
+	xstep = (dx < 0) ? -1 : 1;
+	ystep = (dy < 0) ? -1 : 1;
+	zstep = (dz < 0) ? -1 : 1;
 
-	x = x1;
-	y = y1;
-	dx = x2 - x;
-	dy = y2 - y;
-	p = 2 * dy - dx;
+	dx *= xstep;
+	dy *= ystep;
+	dz *= zstep;
 
-	while (dy--)
+	printf("x = %d\t y = %d\t z = %d\n", xstep, ystep, zstep);
+	if (dx >= dy && dx >= dz)
 	{
-		printf("p = %d\t x = %d\t y = %d\n", p, x, y);
-		mlx_pixel_put(mlx_ptr, win_ptr, x, y, 0xFFFFFF);
-		y++;
-		if (p < 0)
-			p = p + (2 * dx);
-		else
+		p1 = 2 * dy - dx;
+		p2 = 2 * dz - dx;
+		while (x0 != x1)
 		{
-			p = p + (2 * dx) - (2 * dy);
-			x += step;
+			x0 += xstep;
+			if (p1 >= 0)
+			{
+				y0 += ystep;
+				p1 -= 2 * dx;
+			}
+			if (p2 >= 0)
+			{
+				z1 += zstep;
+				p2 -= 2 * dx;
+			}
+			p1 += 2 * dy;
+			p2 += 2 * dz;
+			mlx_pixel_put(utl.m_ptr, utl.w_ptr, x0, y0, 0xFFFFFF);
 		}
 	}
-
-	while (x <= x2)
+	else if (dy >= dx && dy >= dz)
 	{
-		printf("p = %d\t x = %d\t y = %d\n", p, x, y);
-		mlx_pixel_put(mlx_ptr, win_ptr, x, y, 0xFFFFFF);
-		x++;
-		if (p < 0)
-			p = p + (2 * dy);
-		else
+		p1 = 2 * dx - dy;
+		p2 = 2 * dz - dy;
+		while (y0 != y1)
 		{
-			p = p + (2 * dy) - (2 * dx);
-			y++;
+			y0 += ystep;
+			if (p1 >= 0)
+			{
+				x0 += xstep;
+				p1 -= 2 * dy;
+			}
+			if (p2 >= 0)
+			{
+				z1 += zstep;
+				p2 -= 2 * dy;
+			}
+			p1 += 2 * dx;
+			p2 += 2 * dz;
+			mlx_pixel_put(utl.m_ptr, utl.w_ptr, x0, y0, 0xFFFFFF);
 		}
 	}
-	mlx_key_hook(win_ptr, deal_key, (void *)0);
-	mlx_loop(mlx_ptr);
+	else
+	{
+		p1 = 2 * dy - dx;
+		p2 = 2 * dz - dx;
+		while (z0 != z1)
+		{
+			z0 += zstep;
+			if (p1 >= 0)
+			{
+				y0 += ystep;
+				p1 -= 2 * dz;
+			}
+			if (p2 >= 0)
+			{
+				x1 += xstep;
+				p2 -= 2 * dz;
+			}
+			p1 += 2 * dy;
+			p2 += 2 * dz;
+			mlx_pixel_put(utl.m_ptr, utl.w_ptr, x0, y0, 0xFFFFFF);
+		}
+	}
+}
+
+void coordinates(t_map **mtx, t_utl utl)
+{
+    int i;
+    int x;
+    int y;
+    int scale = 10;
+    
+    i = 1;
+    y = -1;
+    while (utl.row > ++y)
+    {
+        x = -1;
+        while (utl.col > ++x)
+        {
+            printf("y = %d\t x = %d\n", ft_abs(y), ft_abs(x));
+            if (y < x)
+            {
+                if (mtx[y][x].x > mtx[y][x+1].x)
+                    bresenham(mtx[y][x+1].x + scale * x, mtx[y+1][x].y + scale * y, mtx[y][x].z, mtx[y][x].x + scale * x, mtx[y][x].y + scale * y, mtx[y][x].z, utl);
+                else
+                    bresenham(mtx[y][x].x + scale * x, mtx[y][x].y + scale * y, mtx[y][x].z, mtx[y][x+1].x + scale * x, mtx[y+1][x].y + scale * y, mtx[y][x].z, utl);
+            }
+            else
+            {
+                if (mtx[y][x].y > mtx[y+1][x].y)
+                    bresenham(mtx[y][x+1].x + scale * x, mtx[y+1][x].y + scale * y, mtx[y][x].z, mtx[y][x].x + scale * x, mtx[y][x].y + scale * y, mtx[y][x].z, utl);
+                else
+                    bresenham(mtx[y][x].x + scale * x, mtx[y][x].y + scale * y, mtx[y][x].z, mtx[y][x+1].x + scale * x, mtx[y+1][x].y + scale * y, mtx[y][x].z, utl);
+            }
+        }
+    }
 }

@@ -12,86 +12,72 @@
 
 #include "fdf.h"
 
-void	plot_line_rows(int x0, int y0, int x1, int y1, t_utl utl)
+void	plot_line_rows(float x0, float y0, float x1, float y1, t_utl *utl)
 {
-    int	x;
-    int	y;
-	int	dx;
-    int	dy;
-	int	p;
-	int	step;
+	float	dx;
+    float	dy;
+	float	p;
+	float	step;
 
-    x = 0;
-    y = 0;
 	dx = x1 - x0;
 	dy = y1 - y0;
     step = dy < 0 ? 1 : -1;
     dy *= step;
     p = 2 * dy - dx;
-    y = y0;
-    while (x < x0)
+    while (x0 != x1)
     {
-        mlx_pixel_put(utl.m_ptr, utl.w_ptr, x, y, 0xFFFFFF);
+        mlx_pixel_put(utl->m_ptr, utl->w_ptr, x0, y0, 0xFFFFFF);
         if (p > 0)
         {
-            y = y + step;
+            y0 = y0 + step;
             p = p - 2 * dx;
         }
         p = p + 2 * dy;
-        x++;
+        x0++;
     }
 }
 
-void	plot_line_colums(int x0, int y0, int x1, int y1, t_utl utl)
+void	plot_line_colums(float x0, float y0, float x1, float y1, t_utl *utl)
 {
-    int	x;
-    int	y;
-	int	dx;
-    int	dy;
-	int	p;
-	int	step;
+	float	dx;
+    float	dy;
+    float	p;
+	float	step;
 
-    x = 0;
-    y = 0;
 	dx = x1 - x0;
 	dy = y1 - y0;
     step = dx < 0 ? 1 : -1;
     dx *= step;
     p = 2 * dx - dy;
-    x = x0;
-    while (y < y0)
+    while (y0 != y1)
     {
-        mlx_pixel_put(utl.m_ptr, utl.w_ptr, x, y, 0xFFFFFF);
+        mlx_pixel_put(utl->m_ptr, utl->w_ptr, x0, y0, 0xFFFFFF);
         if (p > 0)
         {
-            x = x + step;
+            x0 = x0 + step;
             p = p - 2 * dy;
         }
         p = p + 2 * dx;
-        y++;
+        y0++;
     }
 }
 
-void	coordinates(t_map **mtx, t_utl utl)
+void	coordinates(t_map **map, t_utl *utl)
 {
-    int	i;
     int	x;
     int	y;
-    int	scale;
     
-    i = 1;
     y = -1;
-    scale = 10;
-    while (utl.row > ++y)
+    // utl->scale = WIN_HOZ / utl->col;
+    while (utl->row > ++y)
     {
         x = -1;
-        while (utl.col > ++x)
+        while (utl->col > ++x)
         {
-            printf("y = %d\t x = %d\n", ft_abs(y), ft_abs(x));
-            if (x < utl.col)
-                plot_line_rows(mtx[y][x].x + scale * x, mtx[y][x].y + scale * y, mtx[y][x+1].x + scale * x, mtx[y][x+1].y + scale * y, utl);
-            if (y < utl.row)
-                plot_line_colums(mtx[y][x].x + scale * x, mtx[y][x].y + scale * y, mtx[y+1][x].x + scale * x, mtx[y+1][x].y + scale * y, utl);
+            if (x + 1 < utl->col)
+                plot_line_rows(map[y][x].x, map[y][x].y, map[y][x+1].x, map[y][x+1].y, utl);
+            if (y + 1 < utl->row)
+                plot_line_colums(map[y][x].x, map[y][x].y, map[y+1][x].x, map[y+1][x].y, utl);
         }
     }
 }

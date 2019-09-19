@@ -19,7 +19,7 @@ FRAMEWORKS	= -framework OpenGL -framework AppKit
 
 SRC		=	fdf.c \
 			free_alloc_mem.c \
-			draw_map.c
+			draw_map.c 
 
 INC_FT	=	-I includes/libft
 LINK_FT	=	-L includes/libft -lft
