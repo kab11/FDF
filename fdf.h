@@ -52,18 +52,19 @@ typedef struct  s_utl
 {
   int row;
   int col;
-  
+  int keys[256];
   void *m_ptr;
   void *w_ptr;
   t_map **map;
   int scale;
 
-  t_img *img;  
+  t_img *img;
 }               t_utl;
 
 void		free_double_ptr(char **ptr);
 // void    draw(int x0, int y0, int x1, int y1);
 void coordinates(t_map **mtx, t_utl *utl);
+void draw_line_to_image(t_map p0, t_map p1, t_utl *utl);
 void translate(float mtx[4][4], float tx, float ty, float tz);
 void translate_map(t_utl *utl, float changex, float changey);
 

@@ -19,118 +19,108 @@
 
 void mtx_vec_multi(float mtx[4][4], t_map *vec)
 {
-	float vector[4];
+	float	x;
+	float	y;
+	float	z;
 
-	vector[0] = vec->x;
-    vector[1] = vec->y;
-    vector[2] = vec->z;
-	
-	vector[0]	= 	mtx[0][0]*vector[0]+
-					mtx[1][0]*vector[1]+
-					mtx[2][0]*vector[2]+
-					mtx[3][0];
-
-	vector[1]	=	mtx[0][1]*vector[0]+
-					mtx[1][1]*vector[1]+
-					mtx[2][1]*vector[2]+
-					mtx[3][1];
-
-	vector[2]	=	mtx[0][2]*vector[0]+
-					mtx[1][2]*vector[1]+
-					mtx[2][2]*vector[2]+
-					mtx[3][2];
-
-	vec->x = vector[0];	
-	vec->y = vector[1];
-	vec->z = vector[2];	
+	x = vec->x * mtx[0][0] + vec->y * mtx[0][1] + vec->z * mtx[0][2] + mtx[0][3];
+	y = vec->x * mtx[1][0] + vec->y * mtx[1][1] + vec->z * mtx[1][2] + mtx[1][3];
+	z = vec->x * mtx[2][0] + vec->y * mtx[2][1] + vec->z * mtx[2][2] + mtx[2][3];
+	vec->x = x;
+	vec->y = y;
+	vec->z = z;
 }
 
 
 void mtx_multi(float mtx1[4][4], float mtx2[4][4], float dst[4][4])
 {
-    int i;
-    int j;
+    int y;
+    int x;
 
-    i = -1;
-    while (++i < 4)
+    y = -1;
+    while (++y < 4)
     {
-        j = -1;
-        while (++j < 4)
+        x = -1;
+        while (++x < 4)
         {
-            dst[i][j] = mtx1[i][0]*mtx2[0][j]+
-                        mtx1[i][1]*mtx2[1][j]+
-                        mtx1[i][2]*mtx2[2][j]+
-                        mtx1[i][3]*mtx2[3][j];
+            dst[y][x] = mtx1[y][0] * mtx2[0][x] +
+                        mtx1[y][1] * mtx2[1][x] +
+                        mtx1[y][2] * mtx2[2][x] +
+                        mtx1[y][3] * mtx2[3][x];
         }
     }
 }
 
+void clear_mtx(float mtx[4][4])
+{
+	int y;
+	int x;
+
+	y = -1;
+	while (++y < 4)
+	{
+		x = -1;
+		while (++x < 4)
+		{
+			mtx[y][x] = 0.0f;
+		}
+	}
+}
 
 void identity_mtx(float mtx[4][4])
 {
-    ft_bzero(mtx[0], sizeof(float) * 4);
-	ft_bzero(mtx[1], sizeof(float) * 4);
-	ft_bzero(mtx[2], sizeof(float) * 4);
-	ft_bzero(mtx[3], sizeof(float) * 4);
-    mtx[0][0] = 1;
-    mtx[1][1] = 1;
-    mtx[2][2] = 1;
-    mtx[3][3] = 1;
+    clear_mtx(mtx);
+    mtx[0][0] = 1.0f;
+    mtx[1][1] = 1.0f;
+    mtx[2][2] = 1.0f;
+    mtx[3][3] = 1.0f;
 }
 
 void rotation_mtx(float rotate_mtx[4][4])
 {
-	double angle = M_PI / 32;
+	double angle = 0.05f;
 
 	identity_mtx(rotate_mtx);
+	// clear_matrix(rotate_mtx);
 
-	/* rotation x */
-	rotate_mtx[1][1] = cos(angle);
-    rotate_mtx[1][2] = sin(angle);
-    rotate_mtx[2][1] = -sin(angle);
-    rotate_mtx[2][2] = cos(angle);
+	/* rotation x ****** NOT WORKING ****** */
+	// rotate_mtx[1][1] = cos(angle);
+    // rotate_mtx[1][2] = -sin(angle);
+    // rotate_mtx[2][1] = sin(angle);
+    // rotate_mtx[2][2] = cos(angle);
 
 	/* rotation y */
 	// rotate_mtx[0][0] = cos(angle);
-    // rotate_mtx[0][2] = -sin(angle);
-    // rotate_mtx[2][0] = sin(angle);
+    // rotate_mtx[0][2] = sin(angle);
+    // rotate_mtx[2][0] = -sin(angle);
     // rotate_mtx[2][2] = cos(angle);
 
-	/* rotation z */
-	// rotate_mtx[0][0] = cos(angle);
-    // rotate_mtx[0][1] = sin(angle);
-    // rotate_mtx[1][0] = -sin(angle);
-    // rotate_mtx[1][1] = cos(angle);
+	/* rotation z ****** NOT WORKING ****** */
+	rotate_mtx[0][0] = cos(angle);
+    rotate_mtx[0][1] = -sin(angle);
+    rotate_mtx[1][0] = sin(angle);
+    rotate_mtx[1][1] = cos(angle);
 }
 
 void projection_mtx(t_utl *utl, float changex, float changey, float changez)
 {
 	int x;
 	int y;
-	float project_mtx[4][4];
 	float rotate_mtx[4][4];
-	// float combo_mtx[4][4];
 
 	(void)changex;
 	(void)changey;
 	(void)changez;
 	y = -1;
-	identity_mtx(project_mtx);
 	rotation_mtx(rotate_mtx);
-	printf("before\n");
 	while (utl->row > ++y)
 	{
 		x = -1;
 		while (utl->col > ++x)
 		{
-			// mtx_multi(rotate_mtx, project_mtx, combo_mtx);
 			mtx_vec_multi(rotate_mtx, &utl->map[y][x]);
-			// float old_x = utl->map[y][x].x;
-			// utl->map[y][x].x *= utl->map[y][x].x * cos(M_PI / 16.0f) - utl->map[y][x].y * sin(M_PI / 16.0f);
-			// utl->map[y][x].y *= utl->map[y][x].y * sin(M_PI / 16.0f) + old_x * cos(M_PI / 16.0f);
 		}
 	}
-	printf("after\n");
 }
 
 void translate_map(t_utl *utl, float changex, float changey)
@@ -150,31 +140,42 @@ void translate_map(t_utl *utl, float changex, float changey)
     }
 }
 
-int deal_key(int key, t_utl *utl)
+int key_down(int key, t_utl *utl)
 {
+	utl->keys[key] = 1;
+	return (0);
+}
+
+int key_up(int key, t_utl *utl)
+{
+	utl->keys[key] = 0;
+	return (0);
+}
+
+int handle_input(t_utl *utl)
+{
+	if (utl->keys[53])
+		exit(0);
 	/*left arrow*/
-	if (key == 123)
+	if (utl->keys[123])
 		translate_map(utl, -20, 0);
 	/*right arrow*/
-	if (key == 124)
+	if (utl->keys[124])
 		translate_map(utl, 20, 0);
 	/*down arrow*/
-	if (key == 126)
+	if (utl->keys[126])
 		translate_map(utl, 0, -20);
 	/*up arrow*/
-	if (key == 125)
+	if (utl->keys[125])
 		translate_map(utl, 0, 20);
-	if (key == 49)
+	if (utl->keys[49])
 	{
-		float	x = utl->map[utl->row / 2][utl->col/2].x;
-		float	y = utl->map[utl->row / 2][utl->col/2].y;
-		// printf("col = %d\t row = %d\n", utl->col, utl->row);
-		// printf("center = (%f\t%f\t%f)\n", utl->map[utl->row / 2][utl->col/2].x, utl->map[utl->row / 2][utl->col/2].y, utl->map[utl->row / 2][utl->col/2].z);
+		float x = WIDTH / 2;
+		float y = HEIGHT / 2;
+		printf("Translating by: (%f, %f)\n", x, y);
 		translate_map(utl, -x, -y);
-		projection_mtx(utl, 0, 0, 0);
+		projection_mtx(utl, 0.0, 0.0, 0.0);
 		translate_map(utl, x, y);
-		// printf("x = %f\t y = %f\n", x, y);
-		// translate_map(utl, ((utl->row * utl->scale) / 2), ((utl->col * utl->scale) / 2));
 	}
 	return (0);
 }
@@ -204,7 +205,14 @@ int render(t_utl *utl)
 {
 	mlx_clear_window(utl->m_ptr, utl->w_ptr);
 	ft_bzero(utl->img->buf, sizeof(int) * WIDTH * HEIGHT);
+	handle_input(utl);
 	coordinates(utl->map, utl);
+	// for (int i = 0; i < 32; i++)
+	// {
+	// 	t_map p1 = {WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f};
+	// 	t_map p2 = {p1.x, 2.0f * M_PI * 100 / 32.0f + p1.y, 0.0};
+	// 	draw_line_to_image(p1, p2, utl);
+	// }
 	mlx_put_image_to_window(utl->m_ptr, utl->w_ptr, utl->img->image, 0, 0);
 	return (0);
 }
@@ -233,9 +241,10 @@ void read_number_col_row(char *line, const char *filename, t_utl *utl)
 		tmp = NULL;
     }
 	close(fd);
-	utl->row = n_row - 1;
-	utl->col = n_col - 1;
+	utl->row = n_row;
+	utl->col = n_col;
 	utl->scale = WIDTH / utl->col;
+	printf("scale: %d\n", utl->scale);
 }
 
 void read_map(char *line, t_utl *utl, t_map **map, int fd)
@@ -244,7 +253,6 @@ void read_map(char *line, t_utl *utl, t_map **map, int fd)
 	int				y;
 	char			**tmp;
 
-	x = 0;
 	y = 0;
 	while (get_next_line(fd, &line))
 	{
@@ -253,6 +261,7 @@ void read_map(char *line, t_utl *utl, t_map **map, int fd)
 		map[y] = malloc(utl->col * sizeof(t_map));
 		while (tmp[++x])
 		{
+			// Removed the multiplication of utl->scale from the x, y, and z values <---------------------
 			map[y][x].x = x * utl->scale;
 			map[y][x].y = y * utl->scale;
 			map[y][x].z = ft_atoi(tmp[x]) * utl->scale;
@@ -264,6 +273,13 @@ void read_map(char *line, t_utl *utl, t_map **map, int fd)
 		tmp = NULL;
 	}
     close(fd);
+}
+
+void				set_hooks(t_utl *utl)
+{
+	mlx_hook(utl->w_ptr, 2, 0, key_down, utl);
+	mlx_hook(utl->w_ptr, 3, 0, key_up, utl);
+	mlx_loop_hook(utl->m_ptr, render, utl);
 }
 
 void				fdf(const char *filename)
@@ -291,8 +307,8 @@ void				fdf(const char *filename)
 	utl.img->image = mlx_new_image(utl.m_ptr, WIDTH, HEIGHT);
 	utl.img->buf = (int *)mlx_get_data_addr(utl.img->image, &(utl.img->bpp), &(utl.img->len), &(utl.img->endian));
 
-	mlx_key_hook(utl.w_ptr, deal_key, &utl);
-	mlx_loop_hook(utl.m_ptr, render, &utl);
+	ft_bzero(utl.keys, sizeof(int) * 256);
+	set_hooks(&utl);
 	mlx_loop(utl.m_ptr);
 }
 
@@ -300,7 +316,7 @@ int					main(int argc, char **argv)
 {
     if (argc != 2)
 	{
-        ft_printf("ERROR incorrect number of arguments");
+        ft_printf("ERROR incorrect number of arguments\n");
 		return (0);
 	}
 	fdf(argv[1]);
