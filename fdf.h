@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+ /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   fdf.h                                              :+:      :+:    :+:   */
@@ -25,8 +25,8 @@
 
 # define MIN(a, b) (a > b) a : b
 # define MAX(a, b) (a > b) b : a
-# define WIN_HOZ 1000
-# define WIN_VOZ 1000
+# define WIDTH 1000
+# define HEIGHT 1000
 
 /*
 ** struct node of linked list
@@ -39,6 +39,15 @@ typedef struct s_map
   float z;    // height
 }       t_map;
 
+typedef struct s_img
+{
+  void				*image;
+	int					*buf;
+	int					bpp;
+	int					len;
+	int					endian;
+} t_img;
+
 typedef struct  s_utl
 {
   int row;
@@ -47,8 +56,9 @@ typedef struct  s_utl
   void *m_ptr;
   void *w_ptr;
   t_map **map;
-
   int scale;
+
+  t_img *img;  
 }               t_utl;
 
 void		free_double_ptr(char **ptr);

@@ -17,9 +17,11 @@ CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror
 FRAMEWORKS	= -framework OpenGL -framework AppKit
 
-SRC		=	fdf.c \
+SRC		=	main.c \
 			free_alloc_mem.c \
-			draw_map.c 
+			draw_to_image.c
+			# plot_points.c
+			# draw_map.c 
 
 INC_FT	=	-I includes/libft
 LINK_FT	=	-L includes/libft -lft

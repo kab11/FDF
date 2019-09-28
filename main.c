@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   fdf.c                                              :+:      :+:    :+:   */
+/*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kblack <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/05/01 21:13:36 by kblack            #+#    #+#             */
-/*   Updated: 2019/05/01 21:14:25 by kblack           ###   ########.fr       */
+/*   Created: 2019/09/24 21:31:08 by kblack            #+#    #+#             */
+/*   Updated: 2019/09/24 21:31:12 by kblack           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,28 +17,32 @@
 
 #include "fdf.h"
 
-void mtx_vec_multi(float mtx1[4][4], t_map *vec)
+void mtx_vec_multi(float mtx[4][4], t_map *vec)
 {
-	int i;
-	float out[4];
 	float vector[4];
 
-    i = 0;
 	vector[0] = vec->x;
     vector[1] = vec->y;
     vector[2] = vec->z;
-    vector[3] = 1;
-    while (i < 4)
-    {
-		out[i]	= 	mtx1[i][0]*vector[0]+
-					mtx1[i][1]*vector[1]+
-					mtx1[i][2]*vector[2]+
-					mtx1[i][3]*vector[3];
-        i++;
-    }
-	vec->x = out[0];	
-	vec->y = out[1];
-	vec->z = out[2];	
+	
+	vector[0]	= 	mtx[0][0]*vector[0]+
+					mtx[1][0]*vector[1]+
+					mtx[2][0]*vector[2]+
+					mtx[3][0];
+
+	vector[1]	=	mtx[0][1]*vector[0]+
+					mtx[1][1]*vector[1]+
+					mtx[2][1]*vector[2]+
+					mtx[3][1];
+
+	vector[2]	=	mtx[0][2]*vector[0]+
+					mtx[1][2]*vector[1]+
+					mtx[2][2]*vector[2]+
+					mtx[3][2];
+
+	vec->x = vector[0];	
+	vec->y = vector[1];
+	vec->z = vector[2];	
 }
 
 
@@ -47,28 +51,27 @@ void mtx_multi(float mtx1[4][4], float mtx2[4][4], float dst[4][4])
     int i;
     int j;
 
-    i = 0;
-    while (i < 4)
+    i = -1;
+    while (++i < 4)
     {
-        j = 0;
-        while (j < 4)
+        j = -1;
+        while (++j < 4)
         {
             dst[i][j] = mtx1[i][0]*mtx2[0][j]+
                         mtx1[i][1]*mtx2[1][j]+
                         mtx1[i][2]*mtx2[2][j]+
                         mtx1[i][3]*mtx2[3][j];
-			// printf("[%f]\t", dst[i]);
-            j++;
         }
-        i++;
     }
-
 }
 
 
 void identity_mtx(float mtx[4][4])
 {
-    ft_bzero(mtx, sizeof(float) * 4 * 4);
+    ft_bzero(mtx[0], sizeof(float) * 4);
+	ft_bzero(mtx[1], sizeof(float) * 4);
+	ft_bzero(mtx[2], sizeof(float) * 4);
+	ft_bzero(mtx[3], sizeof(float) * 4);
     mtx[0][0] = 1;
     mtx[1][1] = 1;
     mtx[2][2] = 1;
@@ -77,7 +80,7 @@ void identity_mtx(float mtx[4][4])
 
 void rotation_mtx(float rotate_mtx[4][4])
 {
-	double angle = 0.1f;
+	double angle = M_PI / 32;
 
 	identity_mtx(rotate_mtx);
 
@@ -89,14 +92,14 @@ void rotation_mtx(float rotate_mtx[4][4])
 
 	/* rotation y */
 	// rotate_mtx[0][0] = cos(angle);
-    // rotate_mtx[2][0] = sin(angle);
     // rotate_mtx[0][2] = -sin(angle);
+    // rotate_mtx[2][0] = sin(angle);
     // rotate_mtx[2][2] = cos(angle);
 
 	/* rotation z */
 	// rotate_mtx[0][0] = cos(angle);
-    // rotate_mtx[1][0] = -sin(angle);
     // rotate_mtx[0][1] = sin(angle);
+    // rotate_mtx[1][0] = -sin(angle);
     // rotate_mtx[1][1] = cos(angle);
 }
 
@@ -122,8 +125,9 @@ void projection_mtx(t_utl *utl, float changex, float changey, float changez)
 		{
 			// mtx_multi(rotate_mtx, project_mtx, combo_mtx);
 			mtx_vec_multi(rotate_mtx, &utl->map[y][x]);
+			// float old_x = utl->map[y][x].x;
 			// utl->map[y][x].x *= utl->map[y][x].x * cos(M_PI / 16.0f) - utl->map[y][x].y * sin(M_PI / 16.0f);
-			// utl->map[y][x].y *= utl->map[y][x].y * sin(M_PI / 16.0f) + utl->map[y][x].x * cos(M_PI / 16.0f);
+			// utl->map[y][x].y *= utl->map[y][x].y * sin(M_PI / 16.0f) + old_x * cos(M_PI / 16.0f);
 		}
 	}
 	printf("after\n");
@@ -167,7 +171,7 @@ int deal_key(int key, t_utl *utl)
 		// printf("col = %d\t row = %d\n", utl->col, utl->row);
 		// printf("center = (%f\t%f\t%f)\n", utl->map[utl->row / 2][utl->col/2].x, utl->map[utl->row / 2][utl->col/2].y, utl->map[utl->row / 2][utl->col/2].z);
 		translate_map(utl, -x, -y);
-		// projection_mtx(utl, 0, 0, 0);
+		projection_mtx(utl, 0, 0, 0);
 		translate_map(utl, x, y);
 		// printf("x = %f\t y = %f\n", x, y);
 		// translate_map(utl, ((utl->row * utl->scale) / 2), ((utl->col * utl->scale) / 2));
@@ -199,7 +203,9 @@ int					count_columns(char **tmp)
 int render(t_utl *utl)
 {
 	mlx_clear_window(utl->m_ptr, utl->w_ptr);
+	ft_bzero(utl->img->buf, sizeof(int) * WIDTH * HEIGHT);
 	coordinates(utl->map, utl);
+	mlx_put_image_to_window(utl->m_ptr, utl->w_ptr, utl->img->image, 0, 0);
 	return (0);
 }
 
@@ -229,7 +235,7 @@ void read_number_col_row(char *line, const char *filename, t_utl *utl)
 	close(fd);
 	utl->row = n_row - 1;
 	utl->col = n_col - 1;
-	utl->scale = WIN_HOZ / utl->col;
+	utl->scale = WIDTH / utl->col;
 }
 
 void read_map(char *line, t_utl *utl, t_map **map, int fd)
@@ -260,12 +266,13 @@ void read_map(char *line, t_utl *utl, t_map **map, int fd)
     close(fd);
 }
 
-void				read_matrix(const char *filename)
+void				fdf(const char *filename)
 {
 	int				fd;
 	t_utl			utl;
     char			*line;
 	t_map			**map;
+	t_img			img;
 
 	fd = 0;
 	line = NULL;
@@ -278,7 +285,12 @@ void				read_matrix(const char *filename)
 	read_map(line, &utl, map, fd);
 	utl.map = map;
 	utl.m_ptr = mlx_init();
-	utl.w_ptr = mlx_new_window(utl.m_ptr, 1000, 1000, "mlx 42");
+	utl.w_ptr = mlx_new_window(utl.m_ptr, WIDTH, HEIGHT, "FDF 42");
+
+	utl.img = &img;
+	utl.img->image = mlx_new_image(utl.m_ptr, WIDTH, HEIGHT);
+	utl.img->buf = (int *)mlx_get_data_addr(utl.img->image, &(utl.img->bpp), &(utl.img->len), &(utl.img->endian));
+
 	mlx_key_hook(utl.w_ptr, deal_key, &utl);
 	mlx_loop_hook(utl.m_ptr, render, &utl);
 	mlx_loop(utl.m_ptr);
@@ -286,9 +298,11 @@ void				read_matrix(const char *filename)
 
 int					main(int argc, char **argv)
 {
-    if (argc == 2)
-        read_matrix(argv[1]);
-    else
+    if (argc != 2)
+	{
         ft_printf("ERROR incorrect number of arguments");
+		return (0);
+	}
+	fdf(argv[1]);
     return (0);
 }
