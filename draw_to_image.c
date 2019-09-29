@@ -12,7 +12,7 @@
 
 #include "fdf.h"
 
-void draw_pixel_to_image(t_utl *utl, float x, float y, int color)
+void draw_pixel_to_image(t_utl *utl, int x, int y, int color)
 {
 	int location;
 
@@ -70,6 +70,7 @@ void draw_line_to_image(t_map p0, t_map p1, t_utl *utl)
 		p0.z += dz / fabs(dx);
 		p0.x += (p0.x > p1.x) ? -1 : 1;
 	}
+	draw_pixel_to_image(utl, swap ? p0.y : p0.x, swap ? p0.x : p0.y, 0xFFFFFF);
 }
 
 void coordinates(t_map **mtx, t_utl *utl)
@@ -78,14 +79,14 @@ void coordinates(t_map **mtx, t_utl *utl)
     int y;
     
     y = -1;
-    while (++y < utl->row)
+    while (++y < utl->height)
     {
         x = -1;
-        while (++x < utl->col)
+        while (++x < utl->width)
         {
-			if (x < utl->col - 1)
+			if (x < utl->width - 1)
 				draw_line_to_image(mtx[y][x], mtx[y][x + 1], utl);
-			if (y < utl->row - 1)
+			if (y < utl->height - 1)
 				draw_line_to_image(mtx[y][x], mtx[y + 1][x], utl);
         }
     }

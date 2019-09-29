@@ -78,16 +78,16 @@ void identity_mtx(float mtx[4][4])
 
 void rotation_mtx(float rotate_mtx[4][4])
 {
-	double angle = 0.05f;
+	float angle = 0.05f;
 
 	identity_mtx(rotate_mtx);
 	// clear_matrix(rotate_mtx);
 
-	/* rotation x ****** NOT WORKING ****** */
-	// rotate_mtx[1][1] = cos(angle);
-    // rotate_mtx[1][2] = -sin(angle);
-    // rotate_mtx[2][1] = sin(angle);
-    // rotate_mtx[2][2] = cos(angle);
+	/* rotation x */
+	rotate_mtx[1][1] = cos(angle);
+    rotate_mtx[1][2] = -sin(angle);
+    rotate_mtx[2][1] = sin(angle);
+    rotate_mtx[2][2] = cos(angle);
 
 	/* rotation y */
 	// rotate_mtx[0][0] = cos(angle);
@@ -95,11 +95,11 @@ void rotation_mtx(float rotate_mtx[4][4])
     // rotate_mtx[2][0] = -sin(angle);
     // rotate_mtx[2][2] = cos(angle);
 
-	/* rotation z ****** NOT WORKING ****** */
-	rotate_mtx[0][0] = cos(angle);
-    rotate_mtx[0][1] = -sin(angle);
-    rotate_mtx[1][0] = sin(angle);
-    rotate_mtx[1][1] = cos(angle);
+	/* rotation z */
+	// rotate_mtx[0][0] = cos(angle);
+    // rotate_mtx[0][1] = -sin(angle);
+    // rotate_mtx[1][0] = sin(angle);
+    // rotate_mtx[1][1] = cos(angle);
 }
 
 void projection_mtx(t_utl *utl, float changex, float changey, float changez)
@@ -113,10 +113,10 @@ void projection_mtx(t_utl *utl, float changex, float changey, float changez)
 	(void)changez;
 	y = -1;
 	rotation_mtx(rotate_mtx);
-	while (utl->row > ++y)
+	while (++y < utl->height)
 	{
 		x = -1;
-		while (utl->col > ++x)
+		while (++x < utl->width)
 		{
 			mtx_vec_multi(rotate_mtx, &utl->map[y][x]);
 		}
@@ -129,10 +129,10 @@ void translate_map(t_utl *utl, float changex, float changey)
 	int y;
 
 	y = -1;
-	while (utl->row > ++y)
+	while (utl->height > ++y)
     {
         x = -1;
-        while (utl->col > ++x)
+        while (utl->width > ++x)
         {
 			utl->map[y][x].x += changex;
 			utl->map[y][x].y += changey;
@@ -172,9 +172,24 @@ int handle_input(t_utl *utl)
 	{
 		float x = WIDTH / 2;
 		float y = HEIGHT / 2;
-		printf("Translating by: (%f, %f)\n", x, y);
 		translate_map(utl, -x, -y);
 		projection_mtx(utl, 0.0, 0.0, 0.0);
+		translate_map(utl, x, y);
+	}
+	if (utl->keys[69] || utl->keys[78])
+	{
+		float x = WIDTH / 2;
+		float y = HEIGHT / 2;
+		translate_map(utl, -x, -y);
+		for (int y = 0; y < utl->height; y++)
+		{
+			for (int x = 0; x < utl->width; x++)
+			{
+				utl->map[y][x].x *= (utl->keys[69] ? 1.1f : 0.9f);
+				utl->map[y][x].y *= (utl->keys[69] ? 1.1f : 0.9f);
+				utl->map[y][x].z *= (utl->keys[69] ? 1.1f : 0.9f);
+			}
+		}
 		translate_map(utl, x, y);
 	}
 	return (0);
@@ -207,25 +222,19 @@ int render(t_utl *utl)
 	ft_bzero(utl->img->buf, sizeof(int) * WIDTH * HEIGHT);
 	handle_input(utl);
 	coordinates(utl->map, utl);
-	// for (int i = 0; i < 32; i++)
-	// {
-	// 	t_map p1 = {WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f};
-	// 	t_map p2 = {p1.x, 2.0f * M_PI * 100 / 32.0f + p1.y, 0.0};
-	// 	draw_line_to_image(p1, p2, utl);
-	// }
 	mlx_put_image_to_window(utl->m_ptr, utl->w_ptr, utl->img->image, 0, 0);
 	return (0);
 }
 
 void read_number_col_row(char *line, const char *filename, t_utl *utl)
 {
-	int				n_row;
-	int				n_col;
+	int				height;
+	int				width;
 	int				fd;
 	char			**tmp;
 
-	n_row = 0;
-	n_col = 0;
+	height = 0;
+	width = 0;
 	tmp = NULL;
 	fd = open(filename, O_RDONLY);
 	if (fd < 0)
@@ -233,38 +242,40 @@ void read_number_col_row(char *line, const char *filename, t_utl *utl)
 	while (get_next_line(fd, &line))
     {
 		tmp = ft_strsplit(line, ' ');
-		n_col = count_columns(tmp);
-		n_row++;
+		width = count_columns(tmp);
+		height++;
 		free_double_ptr(tmp);
 		free(line);
 		line = NULL;
 		tmp = NULL;
     }
 	close(fd);
-	utl->row = n_row;
-	utl->col = n_col;
-	utl->scale = WIDTH / utl->col;
-	printf("scale: %d\n", utl->scale);
+	utl->height = height;
+	utl->width = width;
+	utl->scale = WIDTH / width;
 }
 
 void read_map(char *line, t_utl *utl, t_map **map, int fd)
 {
 	int				x;
 	int				y;
+	int				x_offset;
+	int				y_offset;
 	char			**tmp;
 
+	x_offset = WIDTH / 2 - utl->width / 2;
+	y_offset = HEIGHT / 2 - utl->height / 2;
 	y = 0;
 	while (get_next_line(fd, &line))
 	{
-		x = -1;
 		tmp = ft_strsplit(line, ' ');
-		map[y] = malloc(utl->col * sizeof(t_map));
+		map[y] = malloc(utl->width * sizeof(t_map));
+		x = -1;
 		while (tmp[++x])
 		{
-			// Removed the multiplication of utl->scale from the x, y, and z values <---------------------
-			map[y][x].x = x * utl->scale;
-			map[y][x].y = y * utl->scale;
-			map[y][x].z = ft_atoi(tmp[x]) * utl->scale;
+			map[y][x].x = x + x_offset;
+			map[y][x].y = y + y_offset;
+			map[y][x].z = ft_atoi(tmp[x]);
 		}
 		y++;
 		free_double_ptr(tmp);
@@ -294,7 +305,7 @@ void				fdf(const char *filename)
 	line = NULL;
 	ft_bzero(&map, sizeof(map));
 	read_number_col_row(line, filename, &utl);
-	map = malloc(utl.row * sizeof(t_map *));
+	map = malloc(utl.height * sizeof(t_map *));
 	fd = open(filename, O_RDONLY);
 	if (fd < 0)
         ft_printf("OOPS Something is wrong with the file descriptor\n");

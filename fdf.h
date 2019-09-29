@@ -32,26 +32,26 @@
 ** struct node of linked list
 */
 
-typedef struct s_map
+typedef struct	s_map
 {
-  float x;    // number of rows
-  float y;    // number of columns
-  float z;    // height
-}       t_map;
+  float x;
+  float y;
+  float z;
+}				t_map;
 
-typedef struct s_img
+typedef struct	s_img
 {
-  void				*image;
+	void				*image;
 	int					*buf;
 	int					bpp;
 	int					len;
 	int					endian;
-} t_img;
+}				t_img;
 
 typedef struct  s_utl
 {
-  int row;
-  int col;
+  int height;
+  int width;
   int keys[256];
   void *m_ptr;
   void *w_ptr;
