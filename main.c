@@ -123,6 +123,17 @@ void scale_mtx(float dst[4][4], float scale)
 	mtx_multi(scale_mtx, dst, dst);
 }
 
+void translate_xyz(float dst[4][4], float x, float y, float z)
+{
+	float translation_mtx[4][4];
+
+	identity_mtx(translation_mtx);
+	translation_mtx[0][3] = x;
+	translation_mtx[1][3] = y;
+	translation_mtx[2][3] = z;
+	mtx_multi(translation_mtx, dst, dst);
+}
+
 void apply_mtx_to_vectors(t_utl *utl, float mtx[4][4])
 {
 	int x;
@@ -172,43 +183,24 @@ int key_up(int key, t_utl *utl)
 int handle_input(t_utl *utl)
 {
 	float		mtx[4][4];
-	float		angle;
 
 	identity_mtx(mtx);
-	angle = 0.05f;
 	if (utl->keys[53])
 		exit(0);
-	if (utl->keys[0] || utl->keys[2])
-		rotation_y(mtx, (utl->keys[0] ? -angle : angle));
-	if (utl->keys[13] || utl->keys[1])
-		rotation_x(mtx, (utl->keys[13] ? angle : -angle));
-	if (utl->keys[12] || utl->keys[14])
-		rotation_z(mtx, (utl->keys[12] ? angle : -angle));
-	/*left arrow*/
-	if (utl->keys[123])
-		translate_map(utl, -20, 0);
-	/*right arrow*/
-	if (utl->keys[124])
-		translate_map(utl, 20, 0);
-	/*down arrow*/
-	if (utl->keys[126])
-		translate_map(utl, 0, -20);
-	/*up arrow*/
-	if (utl->keys[125])
-		translate_map(utl, 0, 20);
-	/*spacebar*/
-	if (utl->keys[49])
-	{
-		float x = WIDTH / 2;
-		float y = HEIGHT / 2;
-		translate_map(utl, -x, -y);
-		// projection_mtx(utl, mtx);
-		translate_map(utl, x, y);
-	}
-	if (utl->keys[69] || utl->keys[78])
-	{
+	if (utl->keys[0] ^ utl->keys[2])
+		rotation_y(mtx, (utl->keys[0] ? -0.05f : 0.05f));
+	if (utl->keys[13] ^ utl->keys[1])
+		rotation_x(mtx, (utl->keys[13] ? 0.05f : -0.05f));
+	if (utl->keys[12] ^ utl->keys[14])
+		rotation_z(mtx, (utl->keys[12] ? 0.05f : -0.05f));
+	/*left arrow || right arrow*/
+	if (utl->keys[123] ^ utl->keys[124])
+		translate_xyz(mtx, (utl->keys[123] ? -10 : 10), 0, 0);
+	/*up arrow || down arrow*/
+	if (utl->keys[125] ^ utl->keys[126])
+		translate_xyz(mtx, 0, (utl->keys[125] ? 10 : -10), 0);
+	if (utl->keys[69] ^ utl->keys[78])
 		scale_mtx(mtx, (utl->keys[69] ? 1.1f : 0.9f));
-	}
 	translate_map(utl, -WIDTH / 2, -HEIGHT / 2);
 	apply_mtx_to_vectors(utl, mtx);
 	translate_map(utl, WIDTH / 2, HEIGHT / 2);

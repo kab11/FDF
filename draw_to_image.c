@@ -41,9 +41,6 @@ int swap_coordinates(t_map *p0, t_map *p1)
 	return (1);
 }
 
-/*
-**	I believe the issue has to do with the line drawing in draw_line_to_image
-*/
 void draw_line_to_image(t_map p0, t_map p1, t_utl *utl)
 {
 	float dx;
@@ -73,6 +70,11 @@ void draw_line_to_image(t_map p0, t_map p1, t_utl *utl)
 	draw_pixel_to_image(utl, swap ? p0.y : p0.x, swap ? p0.x : p0.y, 0xFFFFFF);
 }
 
+int is_on_screen(t_map point)
+{
+	return (point.x > -1 && point.x < WIDTH && point.y > -1 && point.y < HEIGHT);
+}
+
 void coordinates(t_map **mtx, t_utl *utl)
 { 
     int x;
@@ -85,9 +87,15 @@ void coordinates(t_map **mtx, t_utl *utl)
         while (++x < utl->width)
         {
 			if (x < utl->width - 1)
-				draw_line_to_image(mtx[y][x], mtx[y][x + 1], utl);
+			{
+				if (is_on_screen(mtx[y][x]) || is_on_screen(mtx[y][x + 1]))
+					draw_line_to_image(mtx[y][x], mtx[y][x + 1], utl);
+			}
 			if (y < utl->height - 1)
-				draw_line_to_image(mtx[y][x], mtx[y + 1][x], utl);
+			{
+				if (is_on_screen(mtx[y][x]) || is_on_screen(mtx[y + 1][x]))
+					draw_line_to_image(mtx[y][x], mtx[y + 1][x], utl);
+			}
         }
     }
 }
