@@ -76,49 +76,65 @@ void identity_mtx(float mtx[4][4])
     mtx[3][3] = 1.0f;
 }
 
-void rotation_mtx(float rotate_mtx[4][4])
+void rotation_x(float dst[4][4], float angle)
 {
-	float angle = 0.05f;
+	float	rotate_mtx[4][4];
 
 	identity_mtx(rotate_mtx);
-	// clear_matrix(rotate_mtx);
-
-	/* rotation x */
 	rotate_mtx[1][1] = cos(angle);
     rotate_mtx[1][2] = -sin(angle);
     rotate_mtx[2][1] = sin(angle);
     rotate_mtx[2][2] = cos(angle);
-
-	/* rotation y */
-	// rotate_mtx[0][0] = cos(angle);
-    // rotate_mtx[0][2] = sin(angle);
-    // rotate_mtx[2][0] = -sin(angle);
-    // rotate_mtx[2][2] = cos(angle);
-
-	/* rotation z */
-	// rotate_mtx[0][0] = cos(angle);
-    // rotate_mtx[0][1] = -sin(angle);
-    // rotate_mtx[1][0] = sin(angle);
-    // rotate_mtx[1][1] = cos(angle);
+	mtx_multi(rotate_mtx, dst, dst);
 }
 
-void projection_mtx(t_utl *utl, float changex, float changey, float changez)
+void rotation_y(float dst[4][4], float angle)
+{
+	float	rotate_mtx[4][4];
+
+	identity_mtx(rotate_mtx);
+	rotate_mtx[0][0] = cos(angle);
+    rotate_mtx[0][2] = sin(angle);
+    rotate_mtx[2][0] = -sin(angle);
+    rotate_mtx[2][2] = cos(angle);
+	mtx_multi(rotate_mtx, dst, dst);
+}
+
+void rotation_z(float dst[4][4], float angle)
+{
+	float	rotate_mtx[4][4];
+
+	identity_mtx(rotate_mtx);
+	rotate_mtx[0][0] = cos(angle);
+    rotate_mtx[0][1] = -sin(angle);
+    rotate_mtx[1][0] = sin(angle);
+    rotate_mtx[1][1] = cos(angle);
+	mtx_multi(rotate_mtx, dst, dst);
+}
+
+void scale_mtx(float dst[4][4], float scale)
+{
+	float	scale_mtx[4][4];
+
+	identity_mtx(scale_mtx);
+	scale_mtx[0][0] = scale;
+	scale_mtx[1][1] = scale;
+	scale_mtx[2][2] = scale;
+	mtx_multi(scale_mtx, dst, dst);
+}
+
+void apply_mtx_to_vectors(t_utl *utl, float mtx[4][4])
 {
 	int x;
 	int y;
-	float rotate_mtx[4][4];
 
-	(void)changex;
-	(void)changey;
-	(void)changez;
 	y = -1;
-	rotation_mtx(rotate_mtx);
 	while (++y < utl->height)
 	{
 		x = -1;
 		while (++x < utl->width)
 		{
-			mtx_vec_multi(rotate_mtx, &utl->map[y][x]);
+			mtx_vec_multi(mtx, &utl->map[y][x]);
 		}
 	}
 }
@@ -142,6 +158,7 @@ void translate_map(t_utl *utl, float changex, float changey)
 
 int key_down(int key, t_utl *utl)
 {
+	// printf("Key: %d\n", key);
 	utl->keys[key] = 1;
 	return (0);
 }
@@ -154,8 +171,19 @@ int key_up(int key, t_utl *utl)
 
 int handle_input(t_utl *utl)
 {
+	float		mtx[4][4];
+	float		angle;
+
+	identity_mtx(mtx);
+	angle = 0.05f;
 	if (utl->keys[53])
 		exit(0);
+	if (utl->keys[0] || utl->keys[2])
+		rotation_y(mtx, (utl->keys[0] ? -angle : angle));
+	if (utl->keys[13] || utl->keys[1])
+		rotation_x(mtx, (utl->keys[13] ? angle : -angle));
+	if (utl->keys[12] || utl->keys[14])
+		rotation_z(mtx, (utl->keys[12] ? angle : -angle));
 	/*left arrow*/
 	if (utl->keys[123])
 		translate_map(utl, -20, 0);
@@ -168,30 +196,22 @@ int handle_input(t_utl *utl)
 	/*up arrow*/
 	if (utl->keys[125])
 		translate_map(utl, 0, 20);
+	/*spacebar*/
 	if (utl->keys[49])
 	{
 		float x = WIDTH / 2;
 		float y = HEIGHT / 2;
 		translate_map(utl, -x, -y);
-		projection_mtx(utl, 0.0, 0.0, 0.0);
+		// projection_mtx(utl, mtx);
 		translate_map(utl, x, y);
 	}
 	if (utl->keys[69] || utl->keys[78])
 	{
-		float x = WIDTH / 2;
-		float y = HEIGHT / 2;
-		translate_map(utl, -x, -y);
-		for (int y = 0; y < utl->height; y++)
-		{
-			for (int x = 0; x < utl->width; x++)
-			{
-				utl->map[y][x].x *= (utl->keys[69] ? 1.1f : 0.9f);
-				utl->map[y][x].y *= (utl->keys[69] ? 1.1f : 0.9f);
-				utl->map[y][x].z *= (utl->keys[69] ? 1.1f : 0.9f);
-			}
-		}
-		translate_map(utl, x, y);
+		scale_mtx(mtx, (utl->keys[69] ? 1.1f : 0.9f));
 	}
+	translate_map(utl, -WIDTH / 2, -HEIGHT / 2);
+	apply_mtx_to_vectors(utl, mtx);
+	translate_map(utl, WIDTH / 2, HEIGHT / 2);
 	return (0);
 }
 
