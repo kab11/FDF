@@ -12,7 +12,7 @@
 
 #include "fdf.h"
 
-void draw_pixel_to_image(t_utl *utl, float x, float y, int color)
+void draw_pixel_to_image(t_utl *utl, int x, int y, int color)
 {
 	int location;
 
@@ -59,33 +59,43 @@ void draw_line_to_image(t_map p0, t_map p1, t_utl *utl)
 	{
 		draw_pixel_to_image(utl, swap ? p0.y : p0.x, swap ? p0.x : p0.y, 0xFFFFFF);
 		error += slope;
-		if ((int)error >= 0.0)
+		if ((int)error >= 0)
 		{
-			p0.y += (p0.y > p1.y) ? -1.0 : 1.0;
+			p0.y += (p0.y > p1.y) ? -1 : 1;
 			error -= 1;
 		}
 		p0.z += dz / fabs(dx);
-		p0.x += (p0.x > p1.x) ? -1.0 : 1.0;
+		p0.x += (p0.x > p1.x) ? -1 : 1;
 	}
+	draw_pixel_to_image(utl, swap ? p0.y : p0.x, swap ? p0.x : p0.y, 0xFFFFFF);
+}
+
+int is_on_screen(t_map point)
+{
+	return (point.x > -1 && point.x < WIDTH && point.y > -1 && point.y < HEIGHT);
 }
 
 void coordinates(t_map **mtx, t_utl *utl)
 { 
-	printf("DRAW MOFO\n");
     int x;
     int y;
     
     y = -1;
-    while (utl->row > ++y)
+    while (++y < utl->height)
     {
         x = -1;
-        while (utl->col > ++x)
+        while (++x < utl->width)
         {
-			if (x < utl->col - 1)
-				draw_line_to_image(mtx[y][x], mtx[y][x+1], utl);
-			if (y < utl->row - 1)
-				draw_line_to_image(mtx[y][x], mtx[y+1][x], utl);
+			if (x < utl->width - 1)
+			{
+				if (is_on_screen(mtx[y][x]) || is_on_screen(mtx[y][x + 1]))
+					draw_line_to_image(mtx[y][x], mtx[y][x + 1], utl);
+			}
+			if (y < utl->height - 1)
+			{
+				if (is_on_screen(mtx[y][x]) || is_on_screen(mtx[y + 1][x]))
+					draw_line_to_image(mtx[y][x], mtx[y + 1][x], utl);
+			}
         }
     }
-	printf("NOW STOP\n");
 }

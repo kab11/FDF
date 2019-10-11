@@ -14,14 +14,14 @@
 NAME	=	fdf
 
 CC		=	gcc
-CFLAGS	=	-Wall -Wextra -Werror
+CFLAGS	=	-Wall -Wextra -Werror -O3
 FRAMEWORKS	= -framework OpenGL -framework AppKit
 
 SRC		=	main.c \
 			free_alloc_mem.c \
-			draw_to_image.c
-			# plot_points.c
-			# draw_map.c 
+			draw_to_image.c \
+			rotation.c \
+			matrix.c
 
 INC_FT	=	-I includes/libft
 LINK_FT	=	-L includes/libft -lft
@@ -43,7 +43,8 @@ $(NAME): $(OFL)
 	make -C includes/libft
 	make -C includes/ft_printf
 	make -C minilibx
-	$(CC) -o $@ $(CFLAGS) $(FT) $(PT) $(MLX) $(OFL) -I . $(FRAMEWORKS)
+	@ echo "Creating $(NAME)"
+	@ $(CC) -o $@ $(CFLAGS) $(FT) $(PT) $(MLX) $(OFL) -I . $(FRAMEWORKS)
 
 $(OFL): $(SRC)
 	@$(CC) $(CFLAGS) $(INC_FT) $(INC_PT) $(INC_MLX) -I . -c $(SRC)
